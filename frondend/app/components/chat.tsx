@@ -38,6 +38,19 @@ function Chat({ socket, userName, room }: I_Chat) {
     const [currentMessage, setCurrentMessage] = useState("")
     const [MessageList, setMessageList] = useState<I_messageData[]>([])
 
+    //  圖片檔案
+    const [files,setFiles] = useState([])
+    const filesRef = useRef<HTMLInputElement>(null)
+
+    const handleClickFile = () => filesRef.current?.click()
+    const onChangeFile = (event:React.ChangeEvent<HTMLInputElement>) => {
+        const fileObj = event.target.files 
+        if(!fileObj) return
+        console.log(fileObj)
+
+        event.target.files = null;
+    }
+
     //spotify
     const [isSpotifyInput, setIsSpotifyInput] = useState(false)
     const [musicData, setMusicData] = useState<any>([]);
@@ -101,7 +114,6 @@ function Chat({ socket, userName, room }: I_Chat) {
         }
     };
 
-
     const stopRecording = () => {
         if (mediaRecorderRef.current && isRecording) {
             // 停止 MediaRecorder
@@ -161,7 +173,6 @@ function Chat({ socket, userName, room }: I_Chat) {
             console.error('Error sending audio recording:', error);
         }
     };
-
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -396,7 +407,7 @@ function Chat({ socket, userName, room }: I_Chat) {
                         isSpotifyInput ?
                             <input
                                 type="text"
-                                className='text-white p-2 bg-transparent text-sm grow outline-none'
+                                className='text-white px-2 bg-transparent text-sm grow outline-none h-5'
                                 placeholder='收尋音樂...'
                                 onChange={(e) => { setSearchValue(e.target.value) }}
                                 value={SearchValue}
@@ -410,12 +421,13 @@ function Chat({ socket, userName, room }: I_Chat) {
                                 onCompositionStart={handleCompositionStart}
                                 onCompositionEnd={handleCompositionEnd} value={currentMessage} />
                     }
-                    <div className='w-14 flex items-center justify-end gap-2'>
+                    <div className='min-w-14 flex items-center justify-end'>
                         {currentMessage.length !== 0 && <button className='text-sm' onClick={sendMessage}>{sendIcon}</button>}
                         {isSpotifyInput && <button className='text-sm' onClick={handleSearch}>{sendIcon}</button>}
-                        {!isSpotifyInput && currentMessage.length === 0 && <button className=' text-sm' onClick={() => setInputType("audio")}>{recordIcon}</button>}
-                        {!isSpotifyInput && currentMessage.length === 0 && <button className=' text-sm' onClick={() => setIsSpotifyInput(true)}>{musicIcon}</button>}
-                        {!isSpotifyInput && currentMessage.length === 0 && <button className='text-sm'>{PictureIcon}</button>}
+                        {!isSpotifyInput && currentMessage.length === 0 && <button className=' text-sm px-1' onClick={() => setInputType("audio")}>{recordIcon}</button>}
+                        {!isSpotifyInput && currentMessage.length === 0 && <button className=' text-sm px-1' onClick={() => setIsSpotifyInput(true)}>{musicIcon}</button>}
+                        {!isSpotifyInput && currentMessage.length === 0 && <button className='text-sm px-1' onClick={handleClickFile}>{PictureIcon}</button>}
+                        {!isSpotifyInput && currentMessage.length === 0 && <input accept="audio/*,.mp4,.mov,.png,.jpg,.jpeg" className="hidden" multiple type="file" ref={filesRef} onChange={e=>onChangeFile(e)}></input>}
                     </div>
                 </div>
             </footer>
