@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from 'react'
-import { PhoneIcon, VideoIcon, musicIcon, PictureIcon, sendIcon, CloseIcon, recordIcon } from '../icons/icon'
+import { PhoneIcon, VideoIcon, musicIcon, PictureIcon, sendIcon, CloseIcon, recordIcon, CloseIconSm } from '../icons/icon'
 
 
 interface I_Chat {
@@ -39,17 +39,33 @@ function Chat({ socket, userName, room }: I_Chat) {
     const [MessageList, setMessageList] = useState<I_messageData[]>([])
 
     //  圖片檔案
-    const [files,setFiles] = useState([])
+    const [files, setFiles] = useState<any>([])
     const filesRef = useRef<HTMLInputElement>(null)
+    const addFilesRef = useRef<HTMLInputElement>(null)
+
 
     const handleClickFile = () => filesRef.current?.click()
-    const onChangeFile = (event:React.ChangeEvent<HTMLInputElement>) => {
-        const fileObj = event.target.files 
-        if(!fileObj) return
-        console.log(fileObj)
+    const handleClickAddFile = () => addFilesRef.current?.click()
 
-        event.target.files = null;
+    const onChangeFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+        // const fileObj = event.target.files[0]
+        const fileObj = [...event.target.files]
+
+        if (fileObj) {
+            const imageUrl = fileObj.map((imgObj) => URL.createObjectURL(imgObj))
+            // const imageUrl = URL.createObjectURL(fileObj);
+            console.log("imageUrl", imageUrl)
+            setFiles((prev: string[])=>[...prev,...imageUrl]);
+        }
     }
+
+    const handleDeleteFile = (key:string) => {
+        const preFiles = [...files]
+        const newFiles =  preFiles.filter(file=> file !== key)
+        setFiles(newFiles)
+    }
+
+
 
     //spotify
     const [isSpotifyInput, setIsSpotifyInput] = useState(false)
@@ -355,8 +371,7 @@ function Chat({ socket, userName, room }: I_Chat) {
                     )
                 })}
             </div>
-            <footer className='flex flex-col gap-2 pt-4'>
-
+            <footer className='flex flex-col gap-2 pt-4 max-w-[350px]'>
                 {isSpotifyInput &&
                     <>
                         <div className='flex gap-1 overflow-x-auto w-[300px] border-t border-white/30 px-4 pt-1'>
@@ -402,7 +417,24 @@ function Chat({ socket, userName, room }: I_Chat) {
                         </>
                     )
                 }
-                <div className='flex items-center justify-center gap-3 border border-white/30 p-2 mx-4 mb-4 rounded-[20px]'>
+                <div className='w-[calc(full_-_32px)] flex items-center justify-center gap-3 border border-white/30 p-2 mx-4 mb-4 rounded-[20px] flex-wrap box-border'>
+                    {files.length !== 0 && (
+                        <div className='flex gap-2 overflow-x-auto w-full px-2 pt-1 items-center '>
+                            {files.map((file: string) => (
+                                <div key={file} className=' cursor-pointer shrink-0 relative'>
+                                    <div className='w-12 h-12 overflow-hidden rounded-xl'>
+                                        <img src={file} className='h-full w-full object-cover' />
+                                    </div>
+                                    <input accept="audio/*,.mp4,.mov,.png,.jpg,.jpeg" className="hidden" multiple type="file" ref={addFilesRef} onChange={e=>onChangeFile(e)}></input>
+                                    <div className='absolute -right-1.5 -top-1 border rounded-full grid place-content-center ' onClick={()=>handleDeleteFile(file)}>
+                                        <div className='p-1'>{CloseIconSm}</div>
+                                    </div>
+                                </div>))
+                            }
+                            <button className='shrink-0 text-sm p-1 bg-white/30 rounded-lg w-12 h-12 grid place-content-center' onClick={handleClickAddFile}>{PictureIcon}</button>
+                        </div>
+                    )
+                    }
                     {
                         isSpotifyInput ?
                             <input
@@ -414,20 +446,20 @@ function Chat({ socket, userName, room }: I_Chat) {
                             />
                             :
                             <textarea
-                                className='text-white px-2 bg-transparent text-sm grow outline-none resize-none h-5 max-h-52 '
+                                className='text-white px-2 bg-transparent text-sm grow outline-none resize-none h-6 max-h-52 leading-6 '
                                 placeholder='message...'
                                 onKeyDown={handleKeyPress}
                                 onChange={(e) => { setCurrentMessage(e.target.value) }}
                                 onCompositionStart={handleCompositionStart}
                                 onCompositionEnd={handleCompositionEnd} value={currentMessage} />
                     }
-                    <div className='min-w-14 flex items-center justify-end'>
-                        {currentMessage.length !== 0 && <button className='text-sm' onClick={sendMessage}>{sendIcon}</button>}
+                    <div className='min-w-[96px] flex items-center justify-end'>
+                        {(currentMessage.length !== 0 || files.length !== 0) && <button className='text-sm' onClick={sendMessage}>{sendIcon}</button>}
                         {isSpotifyInput && <button className='text-sm' onClick={handleSearch}>{sendIcon}</button>}
-                        {!isSpotifyInput && currentMessage.length === 0 && <button className=' text-sm px-1' onClick={() => setInputType("audio")}>{recordIcon}</button>}
-                        {!isSpotifyInput && currentMessage.length === 0 && <button className=' text-sm px-1' onClick={() => setIsSpotifyInput(true)}>{musicIcon}</button>}
-                        {!isSpotifyInput && currentMessage.length === 0 && <button className='text-sm px-1' onClick={handleClickFile}>{PictureIcon}</button>}
-                        {!isSpotifyInput && currentMessage.length === 0 && <input accept="audio/*,.mp4,.mov,.png,.jpg,.jpeg" className="hidden" multiple type="file" ref={filesRef} onChange={e=>onChangeFile(e)}></input>}
+                        {!isSpotifyInput && currentMessage.length === 0 && files.length === 0 && <button className=' text-sm px-1' onClick={() => setInputType("audio")}>{recordIcon}</button>}
+                        {!isSpotifyInput && currentMessage.length === 0 && files.length === 0 && <button className=' text-sm px-1' onClick={() => setIsSpotifyInput(true)}>{musicIcon}</button>}
+                        {!isSpotifyInput && currentMessage.length === 0 && files.length === 0 && <button className='text-sm px-1' onClick={handleClickFile}>{PictureIcon}</button>}
+                        {!isSpotifyInput && currentMessage.length === 0 && files.length === 0 && <input accept="audio/*,.mp4,.mov,.png,.jpg,.jpeg" className="hidden" multiple type="file" ref={filesRef} onChange={e => onChangeFile(e)}></input>}
                     </div>
                 </div>
             </footer>
