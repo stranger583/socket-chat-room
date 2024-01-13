@@ -48,12 +48,11 @@ function Chat({ socket, userName, room }: I_Chat) {
     const handleClickAddFile = () => addFilesRef.current?.click()
 
     const onChangeFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-        // const fileObj = event.target.files[0]
-        const fileObj = [...event.target.files]
+        const fileObj = event.target.files
 
         if (fileObj) {
-            const imageUrl = fileObj.map((imgObj) => URL.createObjectURL(imgObj))
-            // const imageUrl = URL.createObjectURL(fileObj);
+            const fileArray = Array.from(fileObj);
+            const imageUrl = fileArray.map((imgObj) => URL.createObjectURL(imgObj))
             console.log("imageUrl", imageUrl)
             setFiles((prev: string[])=>[...prev,...imageUrl]);
         }
